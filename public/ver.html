@@ -237,6 +237,9 @@
       document.getElementById("btnVer").href       = fileUrl;
       document.getElementById("btnDescargar").href = downloadUrl;
 
+      // Registrar escaneo en segundo plano
+      fetch(`/api/scan/${id}`, { method: "POST" }).catch(() => {});
+
       show("stateContent");
     } catch {
       show("stateNotFound");

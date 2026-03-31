@@ -36,6 +36,12 @@
     .btn-ghost:hover { background: var(--bg); }
     .btn:disabled { opacity: .5; cursor: not-allowed; }
 
+    /* TABS */
+    .tabs { display: flex; gap: 0; background: white; border-bottom: 1px solid var(--border); padding: 0 28px; }
+    .tab { padding: 14px 20px; font-size: .875rem; font-weight: 600; color: var(--muted); cursor: pointer; border-bottom: 3px solid transparent; transition: all .15s; display: flex; align-items: center; gap: 7px; }
+    .tab:hover { color: var(--text); }
+    .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
     /* TOOLBAR */
     .toolbar { padding: 16px 28px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; background: white; border-bottom: 1px solid var(--border); }
     .search-box { flex: 1; min-width: 200px; display: flex; align-items: center; gap: 8px; background: var(--bg); border: 1.5px solid var(--border); border-radius: 8px; padding: 8px 14px; }
@@ -123,6 +129,32 @@
     .spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto 14px; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
+    /* HISTORIAL */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap: 14px; margin-bottom: 28px; }
+    .stat-card { background: white; border: 1.5px solid var(--border); border-radius: 12px; padding: 18px 20px; display: flex; align-items: center; gap: 14px; }
+    .stat-icon { width: 46px; height: 46px; background: var(--primary-light); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+    .stat-num { font-size: 1.6rem; font-weight: 800; color: var(--text); line-height: 1; }
+    .stat-lbl { font-size: .78rem; color: var(--muted); margin-top: 3px; }
+    .stat-sub { font-size: .78rem; color: var(--muted); margin-top: 2px; }
+    .rank-table { background: white; border: 1.5px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 28px; }
+    .rank-table table { width: 100%; border-collapse: collapse; }
+    .rank-table th { padding: 11px 16px; text-align: left; font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); background: var(--bg); border-bottom: 1px solid var(--border); }
+    .rank-table td { padding: 12px 16px; font-size: .875rem; border-bottom: 1px solid var(--border); }
+    .rank-table tr:last-child td { border-bottom: none; }
+    .rank-table tr:hover td { background: var(--bg); }
+    .scan-bar-wrap { display: flex; align-items: center; gap: 10px; }
+    .scan-bar { height: 8px; background: var(--primary-light); border-radius: 4px; flex: 1; }
+    .scan-bar-fill { height: 100%; background: var(--primary); border-radius: 4px; }
+    .badge-num { background: var(--primary); color: white; font-size: .75rem; font-weight: 700; padding: 2px 10px; border-radius: 20px; }
+
+    /* MODAL DETALLE SCANS */
+    .scan-list { max-height: 320px; overflow-y: auto; }
+    .scan-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .scan-item:last-child { border-bottom: none; }
+    .scan-device { width: 36px; height: 36px; background: var(--bg); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+    .scan-info .scan-date { font-size: .82rem; font-weight: 600; }
+    .scan-info .scan-detail { font-size: .74rem; color: var(--muted); margin-top: 2px; }
+
     /* TOAST */
     .toast { position: fixed; bottom: 24px; right: 24px; padding: 12px 20px; border-radius: 10px; font-size: .875rem; font-weight: 500; box-shadow: 0 8px 24px rgba(0,0,0,.2); transform: translateY(80px); opacity: 0; transition: all .3s; z-index: 200; display: flex; align-items: center; gap: 8px; }
     .toast.show { transform: translateY(0); opacity: 1; }
@@ -158,7 +190,12 @@
   </div>
 </header>
 
-<div class="toolbar">
+<div class="tabs">
+  <div class="tab active" onclick="cambiarTab('docs', this)">📁 Documentos</div>
+  <div class="tab" onclick="cambiarTab('historial', this)">📊 Historial de Escaneos</div>
+</div>
+
+<div class="toolbar" id="toolbarDocs">
   <div class="search-box">
     <span>🔍</span>
     <input type="text" id="searchInput" placeholder="Buscar documento..." oninput="onSearch()" />
@@ -170,6 +207,12 @@
 
 <main id="main">
   <div class="page-state"><div class="spinner"></div><p>Cargando documentos...</p></div>
+</main>
+
+<main id="mainHistorial" style="display:none">
+  <div id="statsContent">
+    <div class="page-state"><div class="spinner"></div><p>Cargando historial...</p></div>
+  </div>
 </main>
 
 <!-- MODAL SUBIR DOCUMENTO -->
@@ -250,6 +293,19 @@
           <a class="btn btn-ghost" id="qrDownloadLink" download="qr.png">⬇️ Descargar</a>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DETALLE SCANS -->
+<div class="overlay" id="overlayScan">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="scanModalTitle">Escaneos</div>
+      <button class="modal-close" onclick="cerrarModalScan()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="scan-list" id="scanList"></div>
     </div>
   </div>
 </div>
@@ -605,6 +661,90 @@
     clearTimeout(t._timer);
     t._timer = setTimeout(() => t.classList.remove("show"), 3500);
   }
+
+  // ─── Tabs ──────────────────────────────────────────────────────────
+  function cambiarTab(tab, el) {
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    el.classList.add("active");
+    document.getElementById("main").style.display           = tab === "docs"      ? "" : "none";
+    document.getElementById("mainHistorial").style.display  = tab === "historial" ? "" : "none";
+    document.getElementById("toolbarDocs").style.display    = tab === "docs"      ? "" : "none";
+    if (tab === "historial") cargarHistorial();
+  }
+
+  // ─── Historial ─────────────────────────────────────────────────────
+  async function cargarHistorial() {
+    const el = document.getElementById("statsContent");
+    el.innerHTML = `<div class="page-state"><div class="spinner"></div><p>Cargando...</p></div>`;
+    try {
+      const stats = await fetch("/api/scan-stats").then(r => r.json());
+      const totalScans = stats.reduce((s, r) => s + parseInt(r.total), 0);
+      const maxTotal   = stats[0] ? parseInt(stats[0].total) : 1;
+
+      el.innerHTML = `
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-icon">📊</div><div><div class="stat-num">${totalScans}</div><div class="stat-lbl">Escaneos totales</div></div></div>
+          <div class="stat-card"><div class="stat-icon">📄</div><div><div class="stat-num">${stats.length}</div><div class="stat-lbl">Documentos escaneados</div></div></div>
+          <div class="stat-card"><div class="stat-icon">🏆</div><div><div class="stat-num">${stats[0] ? esc(stats[0].titulo || "—") : "—"}</div><div class="stat-lbl">Documento más visto (${stats[0]?.total || 0} veces)</div></div></div>
+        </div>
+        <div class="rank-table">
+          <table>
+            <thead><tr>
+              <th>#</th><th>Documento</th><th>Categoría</th>
+              <th>Escaneos</th><th>Último escaneo</th><th></th>
+            </tr></thead>
+            <tbody>
+              ${stats.length === 0 ? `<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--muted)">Sin escaneos registrados aún</td></tr>` :
+                stats.map((row, i) => {
+                  const pct  = Math.round(parseInt(row.total) / maxTotal * 100);
+                  const last = row.last_scan ? new Date(row.last_scan).toLocaleString("es-CO") : "—";
+                  return `<tr>
+                    <td style="color:var(--muted);font-weight:700">${i + 1}</td>
+                    <td><b>${esc(row.icono || "📄")} ${esc(row.titulo || row.document_id)}</b></td>
+                    <td style="color:var(--muted)">${esc(row.categoria || "—")}</td>
+                    <td>
+                      <div class="scan-bar-wrap">
+                        <div class="scan-bar"><div class="scan-bar-fill" style="width:${pct}%"></div></div>
+                        <span class="badge-num">${row.total}</span>
+                      </div>
+                    </td>
+                    <td style="color:var(--muted);font-size:.82rem">${last}</td>
+                    <td><button class="btn-sm btn-sm-ghost" onclick="verDetalleScans('${row.document_id}','${esc(row.titulo||row.document_id)}')">Ver detalle</button></td>
+                  </tr>`;
+                }).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+    } catch {
+      el.innerHTML = `<div class="page-state"><div class="icon">⚠️</div><h3>No se pudo cargar el historial</h3></div>`;
+    }
+  }
+
+  async function verDetalleScans(docId, titulo) {
+    document.getElementById("scanModalTitle").textContent = `Escaneos — ${titulo}`;
+    document.getElementById("scanList").innerHTML = `<div style="text-align:center;padding:20px"><div class="spinner" style="margin:0 auto"></div></div>`;
+    document.getElementById("overlayScan").classList.add("open");
+    try {
+      const scans = await fetch(`/api/scan/${docId}`).then(r => r.json());
+      const deviceIcon = d => ({ "Android":"🤖", "iPhone/iPad":"🍎", "Mac":"💻", "Windows PC":"🖥️", "Linux":"🐧" }[d] || "📱");
+      document.getElementById("scanList").innerHTML = scans.length === 0
+        ? `<p style="text-align:center;color:var(--muted);padding:24px">Sin escaneos registrados</p>`
+        : scans.map(s => `
+            <div class="scan-item">
+              <div class="scan-device">${deviceIcon(s.device)}</div>
+              <div class="scan-info">
+                <div class="scan-date">${new Date(s.scanned_at).toLocaleString("es-CO")}</div>
+                <div class="scan-detail">${esc(s.device || "—")} · IP: ${esc(s.ip || "—")}</div>
+              </div>
+            </div>`).join("");
+    } catch {
+      document.getElementById("scanList").innerHTML = `<p style="color:var(--muted)">Error cargando datos</p>`;
+    }
+  }
+
+  function cerrarModalScan() { document.getElementById("overlayScan").classList.remove("open"); }
+  document.getElementById("overlayScan").addEventListener("click", function(e) { if (e.target === this) cerrarModalScan(); });
 
   init();
 </script>
