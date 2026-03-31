@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portal RRHH — Administración</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #1d4ed8; --primary-dark: #1e40af; --primary-light: #eff6ff;
+      --bg: #f8fafc; --card: #ffffff; --text: #1e293b;
+      --muted: #64748b; --border: #e2e8f0; --radius: 12px;
+      --danger: #dc2626; --success: #16a34a;
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* HEADER */
+    header { background: var(--primary); color: white; padding: 20px 28px; display: flex; align-items: center; gap: 16px; box-shadow: 0 4px 12px rgba(29,78,216,.25); }
+    .logo-icon { width: 48px; height: 48px; background: rgba(255,255,255,.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; }
+    header h1 { font-size: 1.35rem; font-weight: 800; }
+    header p { font-size: 0.82rem; opacity: .8; margin-top: 2px; }
+    .header-right { margin-left: auto; display: flex; gap: 10px; }
+
+    /* BUTTONS */
+    .btn { padding: 9px 18px; border-radius: 8px; border: none; cursor: pointer; font-size: .875rem; font-weight: 600; transition: all .15s; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-white { background: white; color: var(--primary); }
+    .btn-white:hover { background: #eff6ff; }
+    .btn-outline { background: transparent; color: white; border: 2px solid rgba(255,255,255,.45); }
+    .btn-outline:hover { background: rgba(255,255,255,.12); border-color: white; }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-danger:hover { background: #b91c1c; }
+    .btn-ghost { background: none; border: 1.5px solid var(--border); color: var(--text); }
+    .btn-ghost:hover { background: var(--bg); }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    /* TOOLBAR */
+    .toolbar { padding: 16px 28px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; background: white; border-bottom: 1px solid var(--border); }
+    .search-box { flex: 1; min-width: 200px; display: flex; align-items: center; gap: 8px; background: var(--bg); border: 1.5px solid var(--border); border-radius: 8px; padding: 8px 14px; }
+    .search-box input { border: none; background: transparent; font-size: .875rem; color: var(--text); outline: none; width: 100%; }
+    .filter-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+    .chip { padding: 6px 14px; border-radius: 20px; border: 1.5px solid var(--border); background: white; cursor: pointer; font-size: .8rem; font-weight: 500; color: var(--muted); transition: all .15s; }
+    .chip:hover { border-color: var(--primary); color: var(--primary); }
+    .chip.active { background: var(--primary); border-color: var(--primary); color: white; }
+
+    /* MAIN */
+    main { padding: 24px 28px; max-width: 1400px; margin: 0 auto; }
+    .section-header { display: flex; align-items: center; gap: 10px; font-size: 1rem; font-weight: 700; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 2px solid var(--border); }
+    .count-badge { background: var(--primary); color: white; font-size: .72rem; padding: 2px 9px; border-radius: 12px; font-weight: 700; }
+    .docs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; margin-bottom: 32px; }
+
+    /* DOC CARD */
+    .doc-card { background: white; border: 1.5px solid var(--border); border-radius: var(--radius); overflow: hidden; transition: box-shadow .2s, transform .15s; }
+    .doc-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,.1); transform: translateY(-2px); }
+    .card-top { padding: 14px 16px 10px; display: flex; align-items: flex-start; gap: 11px; }
+    .doc-icon { width: 40px; height: 40px; background: var(--primary-light); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+    .doc-title { font-size: .92rem; font-weight: 700; line-height: 1.3; }
+    .doc-meta { font-size: .75rem; color: var(--muted); margin-top: 4px; display: flex; gap: 8px; }
+    .doc-desc { padding: 0 16px 12px; font-size: .82rem; color: var(--muted); line-height: 1.5; }
+    .card-qr { padding: 12px 16px; background: var(--bg); border-top: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+    .qr-wrap { background: white; padding: 5px; border-radius: 8px; border: 1.5px solid var(--border); flex-shrink: 0; cursor: pointer; transition: border-color .15s; }
+    .qr-wrap:hover { border-color: var(--primary); }
+    .qr-wrap img { display: block; width: 72px; height: 72px; }
+    .card-actions { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+    .btn-sm { padding: 6px 10px; font-size: .78rem; border-radius: 6px; font-weight: 600; cursor: pointer; border: none; transition: all .15s; display: flex; align-items: center; gap: 4px; justify-content: center; }
+    .btn-sm-primary { background: var(--primary); color: white; }
+    .btn-sm-primary:hover { background: var(--primary-dark); }
+    .btn-sm-ghost { background: white; border: 1.5px solid var(--border); color: var(--text); }
+    .btn-sm-ghost:hover { background: var(--bg); }
+    .btn-sm-danger { background: #fef2f2; color: var(--danger); border: 1.5px solid #fecaca; }
+    .btn-sm-danger:hover { background: #fee2e2; }
+
+    /* MODAL */
+    .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
+    .overlay.open { display: flex; }
+    .modal { background: white; border-radius: 16px; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; box-shadow: 0 24px 60px rgba(0,0,0,.28); }
+    .modal-header { padding: 22px 24px 0; display: flex; justify-content: space-between; align-items: flex-start; }
+    .modal-title { font-size: 1.1rem; font-weight: 800; }
+    .modal-close { background: none; border: none; cursor: pointer; font-size: 1.4rem; color: var(--muted); line-height: 1; }
+    .modal-close:hover { color: var(--text); }
+    .modal-body { padding: 20px 24px 24px; }
+
+    /* FORM */
+    .form-row { margin-bottom: 16px; }
+    .form-row label { display: block; font-size: .82rem; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+    .form-row input, .form-row textarea, .form-row select {
+      width: 100%; padding: 9px 13px; border: 1.5px solid var(--border); border-radius: 8px;
+      font-size: .875rem; font-family: inherit; color: var(--text); background: white;
+      outline: none; transition: border-color .15s;
+    }
+    .form-row input:focus, .form-row textarea:focus, .form-row select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(29,78,216,.1); }
+    .form-row textarea { resize: vertical; min-height: 72px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    .file-drop {
+      border: 2px dashed var(--border); border-radius: 10px;
+      padding: 28px 20px; text-align: center; cursor: pointer;
+      transition: all .2s; background: var(--bg);
+    }
+    .file-drop:hover, .file-drop.drag-over { border-color: var(--primary); background: var(--primary-light); }
+    .file-drop .drop-icon { font-size: 2.2rem; margin-bottom: 8px; }
+    .file-drop p { font-size: .85rem; color: var(--muted); }
+    .file-drop strong { color: var(--primary); }
+    .file-selected { margin-top: 8px; font-size: .8rem; color: var(--success); font-weight: 600; }
+
+    .form-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
+
+    /* QR MODAL */
+    .qr-modal-content { text-align: center; padding: 8px 0 16px; }
+    .qr-modal-img { margin: 0 auto 16px; width: fit-content; background: white; border: 2px solid var(--border); border-radius: 12px; padding: 10px; }
+    .qr-modal-img img { display: block; }
+    .qr-modal-title { font-size: 1rem; font-weight: 700; margin-bottom: 6px; }
+    .qr-modal-desc { font-size: .82rem; color: var(--muted); margin-bottom: 16px; }
+    .qr-modal-url { font-size: .72rem; color: var(--muted); word-break: break-all; background: var(--bg); border-radius: 6px; padding: 8px 12px; margin-bottom: 16px; }
+    .qr-modal-btns { display: flex; gap: 10px; justify-content: center; }
+
+    /* EMPTY / LOADING */
+    .page-state { text-align: center; padding: 60px 20px; color: var(--muted); }
+    .page-state .icon { font-size: 3rem; margin-bottom: 14px; }
+    .page-state h3 { font-size: 1.1rem; color: var(--text); margin-bottom: 6px; }
+    .spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto 14px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* TOAST */
+    .toast { position: fixed; bottom: 24px; right: 24px; padding: 12px 20px; border-radius: 10px; font-size: .875rem; font-weight: 500; box-shadow: 0 8px 24px rgba(0,0,0,.2); transform: translateY(80px); opacity: 0; transition: all .3s; z-index: 200; display: flex; align-items: center; gap: 8px; }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast-success { background: #052e16; color: #86efac; }
+    .toast-error   { background: #450a0a; color: #fca5a5; }
+    .toast-info    { background: #1e293b; color: white; }
+
+    /* PROGRESS */
+    .progress-bar { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; margin-top: 8px; display: none; }
+    .progress-bar.visible { display: block; }
+    .progress-fill { height: 100%; background: var(--primary); border-radius: 2px; transition: width .3s; }
+
+    @media (max-width: 640px) {
+      header { padding: 14px 16px; } header h1 { font-size: 1.1rem; }
+      .toolbar { padding: 12px 16px; }
+      main { padding: 16px; }
+      .docs-grid { grid-template-columns: 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo-icon">📁</div>
+  <div>
+    <h1 id="headerTitle">Portal de Documentos</h1>
+    <p>Recursos Humanos — Panel de Administración</p>
+  </div>
+  <div class="header-right">
+    <button class="btn btn-outline" onclick="imprimirTodosQR()">🖨️ Imprimir todos</button>
+    <button class="btn btn-white" onclick="abrirModalSubir()">➕ Nuevo documento</button>
+  </div>
+</header>
+
+<div class="toolbar">
+  <div class="search-box">
+    <span>🔍</span>
+    <input type="text" id="searchInput" placeholder="Buscar documento..." oninput="onSearch()" />
+  </div>
+  <div class="filter-chips" id="chips">
+    <button class="chip active" data-cat="todos" onclick="seleccionarChip(this,'todos')">Todos</button>
+  </div>
+</div>
+
+<main id="main">
+  <div class="page-state"><div class="spinner"></div><p>Cargando documentos...</p></div>
+</main>
+
+<!-- MODAL SUBIR DOCUMENTO -->
+<div class="overlay" id="overlaySubir">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalSubirTitle">Nuevo documento</div>
+      <button class="modal-close" onclick="cerrarModalSubir()">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="formSubir" onsubmit="submitDoc(event)">
+        <!-- Archivo -->
+        <div class="form-row" id="fileRow">
+          <label>Archivo *</label>
+          <div class="file-drop" id="fileDrop" onclick="document.getElementById('fileInput').click()"
+               ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
+            <div class="drop-icon">📎</div>
+            <p>Arrastra el archivo aquí o <strong>haz clic para seleccionar</strong></p>
+            <p style="margin-top:4px;font-size:.75rem;">PDF, Word, Excel, PowerPoint, imágenes (máx 50 MB)</p>
+            <div class="file-selected" id="fileSelectedLabel"></div>
+          </div>
+          <input type="file" id="fileInput" style="display:none" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.webp" onchange="onFileChange()" />
+          <div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+        </div>
+
+        <div class="form-row">
+          <label>Título *</label>
+          <input type="text" id="fTitulo" placeholder="Ej: Reglamento Interno de Trabajo" required />
+        </div>
+        <div class="form-row">
+          <label>Descripción</label>
+          <textarea id="fDescripcion" placeholder="Breve descripción del documento..."></textarea>
+        </div>
+        <div class="form-grid">
+          <div class="form-row">
+            <label>Categoría</label>
+            <input type="text" id="fCategoria" placeholder="Ej: Políticas" list="catList" />
+            <datalist id="catList"></datalist>
+          </div>
+          <div class="form-row">
+            <label>Icono</label>
+            <input type="text" id="fIcono" placeholder="📄" maxlength="4" />
+          </div>
+          <div class="form-row">
+            <label>Versión</label>
+            <input type="text" id="fVersion" placeholder="v1.0" />
+          </div>
+          <div class="form-row">
+            <label>Fecha / Año</label>
+            <input type="text" id="fFecha" placeholder="Ej: Enero 2025" />
+          </div>
+        </div>
+        <div class="form-footer">
+          <button type="button" class="btn btn-ghost" onclick="cerrarModalSubir()">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="btnSubmit">💾 Guardar documento</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL VER QR -->
+<div class="overlay" id="overlayQR">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Código QR</div>
+      <button class="modal-close" onclick="cerrarModalQR()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="qr-modal-content">
+        <div class="qr-modal-img"><img id="qrBigImg" src="" width="200" height="200" /></div>
+        <div class="qr-modal-title" id="qrModalTitle"></div>
+        <div class="qr-modal-desc" id="qrModalDesc"></div>
+        <div class="qr-modal-url" id="qrModalUrl"></div>
+        <div class="qr-modal-btns">
+          <button class="btn btn-ghost" onclick="cerrarModalQR()">Cerrar</button>
+          <button class="btn btn-primary" onclick="imprimirUnQR()">🖨️ Imprimir</button>
+          <a class="btn btn-ghost" id="qrDownloadLink" download="qr.png">⬇️ Descargar</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+  const EMPRESA = "Tu Empresa S.A.";
+  const COLOR   = "#1d4ed8";
+  document.documentElement.style.setProperty("--primary", COLOR);
+
+  let BASE_URL  = window.location.origin;
+  let docs = [];
+  let categorias = [];
+  let catActiva = "todos";
+  let busqueda  = "";
+  let editId    = null;
+  let qrModalDoc = null;
+
+  // ─── Init ──────────────────────────────────────────────────────────
+  async function init() {
+    try {
+      const cfg = await fetch("/api/config").then(r => r.json());
+      BASE_URL = cfg.baseUrl || BASE_URL;
+    } catch {}
+    await cargarDocs();
+  }
+
+  async function cargarDocs() {
+    const params = new URLSearchParams();
+    if (catActiva !== "todos") params.set("cat", catActiva);
+    if (busqueda) params.set("q", busqueda);
+    try {
+      docs = await fetch("/api/docs?" + params).then(r => r.json());
+      categorias = [...new Set(docs.map(d => d.categoria))];
+      renderChips();
+      renderDocs();
+    } catch (e) {
+      renderError();
+    }
+  }
+
+  function renderError() {
+    document.getElementById("main").innerHTML = `
+      <div class="page-state"><div class="icon">⚠️</div>
+      <h3>No se pudo conectar con el servidor</h3>
+      <p>Asegúrate de que el servidor está corriendo</p></div>`;
+  }
+
+  // ─── Chips ─────────────────────────────────────────────────────────
+  function renderChips() {
+    const chips = document.getElementById("chips");
+    const existing = [...chips.querySelectorAll(".chip[data-cat]")].map(c => c.dataset.cat);
+    categorias.forEach(cat => {
+      if (existing.includes(cat)) return;
+      const btn = document.createElement("button");
+      btn.className = "chip"; btn.dataset.cat = cat; btn.textContent = cat;
+      btn.onclick = () => seleccionarChip(btn, cat);
+      chips.appendChild(btn);
+    });
+    // Actualizar datalist
+    const dl = document.getElementById("catList");
+    dl.innerHTML = categorias.map(c => `<option value="${c}">`).join("");
+  }
+
+  function seleccionarChip(el, cat) {
+    document.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
+    el.classList.add("active");
+    catActiva = cat;
+    cargarDocs();
+  }
+
+  function onSearch() {
+    busqueda = document.getElementById("searchInput").value.trim();
+    cargarDocs();
+  }
+
+  // ─── Render docs ────────────────────────────────────────────────────
+  function renderDocs() {
+    const main = document.getElementById("main");
+    if (docs.length === 0) {
+      main.innerHTML = `<div class="page-state"><div class="icon">📭</div>
+        <h3>No hay documentos</h3>
+        <p>Haz clic en "Nuevo documento" para agregar el primero</p></div>`;
+      return;
+    }
+    const byCat = {};
+    docs.forEach(d => {
+      if (!byCat[d.categoria]) byCat[d.categoria] = [];
+      byCat[d.categoria].push(d);
+    });
+    main.innerHTML = Object.entries(byCat).map(([cat, items]) => `
+      <div class="section-header">
+        <span>${items[0].icono}</span>
+        <span>${cat}</span>
+        <span class="count-badge">${items.length}</span>
+      </div>
+      <div class="docs-grid">
+        ${items.map(docCard).join("")}
+      </div>
+    `).join("");
+  }
+
+  function docCard(doc) {
+    const qrUrl = `/api/qr/${doc.id}?size=72`;
+    const docUrl = `${BASE_URL}/ver.html?id=${doc.id}`;
+    return `
+      <div class="doc-card" id="card-${doc.id}">
+        <div class="card-top">
+          <div class="doc-icon">${doc.icono}</div>
+          <div style="flex:1;min-width:0;">
+            <div class="doc-title">${esc(doc.titulo)}</div>
+            <div class="doc-meta">
+              <span>🗓 ${esc(doc.fecha || "")}</span>
+              <span>${esc(doc.version || "")}</span>
+            </div>
+          </div>
+        </div>
+        <div class="doc-desc">${esc(doc.descripcion || "")}</div>
+        <div class="card-qr">
+          <div class="qr-wrap" onclick="abrirModalQR('${doc.id}')" title="Ver QR grande">
+            <img src="${qrUrl}" width="72" height="72" alt="QR" loading="lazy" />
+          </div>
+          <div class="card-actions">
+            <button class="btn-sm btn-sm-primary" onclick="abrirModalQR('${doc.id}')">🖨️ Imprimir QR</button>
+            <button class="btn-sm btn-sm-ghost" onclick="copiarLink('${doc.id}')">🔗 Copiar enlace</button>
+            <button class="btn-sm btn-sm-ghost" onclick="editarDoc('${doc.id}')">✏️ Editar</button>
+            <button class="btn-sm btn-sm-danger" onclick="eliminarDoc('${doc.id}', '${esc(doc.titulo)}')">🗑️ Eliminar</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // ─── Modal Subir ────────────────────────────────────────────────────
+  function abrirModalSubir() {
+    editId = null;
+    document.getElementById("modalSubirTitle").textContent = "Nuevo documento";
+    document.getElementById("formSubir").reset();
+    document.getElementById("fileSelectedLabel").textContent = "";
+    document.getElementById("fileRow").style.display = "";
+    document.getElementById("btnSubmit").textContent = "💾 Guardar documento";
+    document.getElementById("overlaySubir").classList.add("open");
+  }
+
+  function cerrarModalSubir() {
+    document.getElementById("overlaySubir").classList.remove("open");
+    editId = null;
+  }
+
+  function editarDoc(id) {
+    const doc = docs.find(d => d.id === id);
+    if (!doc) return;
+    editId = id;
+    document.getElementById("modalSubirTitle").textContent = "Editar documento";
+    document.getElementById("fTitulo").value     = doc.titulo || "";
+    document.getElementById("fDescripcion").value = doc.descripcion || "";
+    document.getElementById("fCategoria").value  = doc.categoria || "";
+    document.getElementById("fIcono").value      = doc.icono || "📄";
+    document.getElementById("fVersion").value    = doc.version || "";
+    document.getElementById("fFecha").value      = doc.fecha || "";
+    document.getElementById("fileRow").style.display = "none";
+    document.getElementById("btnSubmit").textContent = "💾 Actualizar";
+    document.getElementById("overlaySubir").classList.add("open");
+  }
+
+  async function submitDoc(e) {
+    e.preventDefault();
+    const btn = document.getElementById("btnSubmit");
+    btn.disabled = true;
+    btn.textContent = "Guardando...";
+
+    try {
+      if (editId) {
+        // PATCH — solo metadatos
+        const body = {
+          titulo:       document.getElementById("fTitulo").value.trim(),
+          descripcion:  document.getElementById("fDescripcion").value.trim(),
+          categoria:    document.getElementById("fCategoria").value.trim() || "General",
+          icono:        document.getElementById("fIcono").value.trim() || "📄",
+          version:      document.getElementById("fVersion").value.trim(),
+          fecha:        document.getElementById("fFecha").value.trim(),
+        };
+        const res = await fetch(`/api/docs/${editId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+        if (!res.ok) throw new Error((await res.json()).error || "Error");
+        toast("✅ Documento actualizado", "success");
+      } else {
+        // POST — con archivo
+        const file = document.getElementById("fileInput").files[0];
+        if (!file) { toast("⚠️ Selecciona un archivo", "error"); btn.disabled = false; btn.textContent = "💾 Guardar documento"; return; }
+        const fd = new FormData();
+        fd.append("archivo",     file);
+        fd.append("titulo",      document.getElementById("fTitulo").value.trim());
+        fd.append("descripcion", document.getElementById("fDescripcion").value.trim());
+        fd.append("categoria",   document.getElementById("fCategoria").value.trim() || "General");
+        fd.append("icono",       document.getElementById("fIcono").value.trim() || "📄");
+        fd.append("version",     document.getElementById("fVersion").value.trim() || "v1.0");
+        fd.append("fecha",       document.getElementById("fFecha").value.trim() || new Date().getFullYear().toString());
+
+        // Upload con progreso
+        const progressBar = document.getElementById("progressBar");
+        progressBar.classList.add("visible");
+        await uploadConProgreso(fd);
+        progressBar.classList.remove("visible");
+        document.getElementById("progressFill").style.width = "0%";
+        toast("✅ Documento creado", "success");
+      }
+      cerrarModalSubir();
+      await cargarDocs();
+    } catch (err) {
+      toast("❌ " + err.message, "error");
+    } finally {
+      btn.disabled = false;
+      btn.textContent = editId ? "💾 Actualizar" : "💾 Guardar documento";
+    }
+  }
+
+  function uploadConProgreso(formData) {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", "/api/docs");
+      xhr.upload.addEventListener("progress", e => {
+        if (e.lengthComputable) {
+          document.getElementById("progressFill").style.width = (e.loaded / e.total * 100) + "%";
+        }
+      });
+      xhr.addEventListener("load", () => {
+        if (xhr.status >= 200 && xhr.status < 300) resolve(JSON.parse(xhr.responseText));
+        else { try { reject(new Error(JSON.parse(xhr.responseText).error)); } catch { reject(new Error("Error al subir")); } }
+      });
+      xhr.addEventListener("error", () => reject(new Error("Error de red")));
+      xhr.send(formData);
+    });
+  }
+
+  // ─── Eliminar ──────────────────────────────────────────────────────
+  async function eliminarDoc(id, titulo) {
+    if (!confirm(`¿Eliminar "${titulo}"?\nEsta acción no se puede deshacer.`)) return;
+    try {
+      const res = await fetch(`/api/docs/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error((await res.json()).error);
+      toast("🗑️ Documento eliminado", "info");
+      await cargarDocs();
+    } catch (err) {
+      toast("❌ " + err.message, "error");
+    }
+  }
+
+  // ─── Modal QR ──────────────────────────────────────────────────────
+  function abrirModalQR(id) {
+    const doc = docs.find(d => d.id === id);
+    if (!doc) return;
+    qrModalDoc = doc;
+    const docUrl = `${BASE_URL}/ver.html?id=${doc.id}`;
+    const qrUrl  = `/api/qr/${doc.id}?size=200`;
+
+    document.getElementById("qrBigImg").src  = qrUrl;
+    document.getElementById("qrModalTitle").textContent = doc.titulo;
+    document.getElementById("qrModalDesc").textContent  = doc.descripcion || "";
+    document.getElementById("qrModalUrl").textContent   = docUrl;
+    document.getElementById("qrDownloadLink").href = qrUrl;
+    document.getElementById("qrDownloadLink").download = `qr-${doc.id}.png`;
+    document.getElementById("overlayQR").classList.add("open");
+  }
+
+  function cerrarModalQR() {
+    document.getElementById("overlayQR").classList.remove("open");
+    qrModalDoc = null;
+  }
+
+  function imprimirUnQR() {
+    if (!qrModalDoc) return;
+    const doc  = qrModalDoc;
+    const qrUrl = `/api/qr/${doc.id}?size=200`;
+    const win  = window.open("", "_blank", "width=480,height=620");
+    win.document.write(printQRPage([{ doc, qrUrl }]));
+    win.document.close();
+  }
+
+  // ─── Imprimir todos ────────────────────────────────────────────────
+  async function imprimirTodosQR() {
+    const all = await fetch("/api/docs").then(r => r.json());
+    const items = all.map(doc => ({ doc, qrUrl: `/api/qr/${doc.id}?size=160` }));
+    const win = window.open("", "_blank");
+    win.document.write(printQRPage(items, true));
+    win.document.close();
+  }
+
+  function printQRPage(items, grid = false) {
+    const cards = items.map(({ doc, qrUrl }) => `
+      <div class="qr-card">
+        <div class="empresa">${EMPRESA}</div>
+        <img src="${qrUrl}" />
+        <div class="cat">${doc.icono} ${doc.categoria}</div>
+        <div class="titulo">${doc.titulo}</div>
+        <div class="hint">📱 Escanea para ver el documento</div>
+      </div>
+    `).join("");
+    return `<!DOCTYPE html><html><head><title>QR Codes</title><style>
+      body { font-family: -apple-system, sans-serif; padding: 20px; }
+      h1 { text-align:center; font-size:1.3rem; margin-bottom:22px; }
+      .grid { display:grid; grid-template-columns: ${grid ? "repeat(3,1fr)" : "1fr"}; gap:16px; }
+      .qr-card { border:2px dashed #e2e8f0; border-radius:12px; padding:20px 14px; text-align:center; break-inside:avoid; }
+      .empresa { font-size:.68rem; font-weight:700; color:#1d4ed8; text-transform:uppercase; letter-spacing:.05em; margin-bottom:6px; }
+      img { display:block; margin:0 auto; }
+      .cat { font-size:.7rem; color:#64748b; margin-top:8px; }
+      .titulo { font-size:.88rem; font-weight:700; color:#1e293b; margin-top:4px; }
+      .hint { font-size:.7rem; color:#94a3b8; margin-top:8px; }
+    </style></head><body>
+      <h1>📁 ${EMPRESA} — Documentos RRHH</h1>
+      <div class="grid">${cards}</div>
+      <script>window.onload = () => window.print();<\/script>
+    </body></html>`;
+  }
+
+  // ─── Helpers ───────────────────────────────────────────────────────
+  function copiarLink(id) {
+    const url = `${BASE_URL}/ver.html?id=${id}`;
+    navigator.clipboard.writeText(url)
+      .then(() => toast("🔗 Enlace copiado", "info"))
+      .catch(() => toast("📋 " + url, "info"));
+  }
+
+  function esc(str) {
+    return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  }
+
+  // File drag & drop
+  function onFileChange() {
+    const file = document.getElementById("fileInput").files[0];
+    document.getElementById("fileSelectedLabel").textContent = file ? `✅ ${file.name} (${(file.size/1024/1024).toFixed(1)} MB)` : "";
+  }
+  function onDragOver(e) { e.preventDefault(); document.getElementById("fileDrop").classList.add("drag-over"); }
+  function onDragLeave(e) { document.getElementById("fileDrop").classList.remove("drag-over"); }
+  function onDrop(e) {
+    e.preventDefault();
+    document.getElementById("fileDrop").classList.remove("drag-over");
+    const file = e.dataTransfer.files[0];
+    if (file) { document.getElementById("fileInput").files = e.dataTransfer.files; onFileChange(); }
+  }
+
+  // Close overlays on background click
+  document.querySelectorAll(".overlay").forEach(o => o.addEventListener("click", function(e) {
+    if (e.target === this) { this.classList.remove("open"); editId = null; qrModalDoc = null; }
+  }));
+
+  // Toast
+  function toast(msg, type = "info") {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.className = `toast toast-${type} show`;
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => t.classList.remove("show"), 3500);
+  }
+
+  init();
+</script>
+</body>
+</html>

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Documento RRHH</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #1d4ed8; --primary-dark: #1e40af;
+      --bg: #f8fafc; --card: #ffffff; --text: #1e293b;
+      --muted: #64748b; --border: #e2e8f0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg); color: var(--text);
+      min-height: 100vh; display: flex; flex-direction: column;
+    }
+
+    /* TOP BAR */
+    .top-bar {
+      background: var(--primary); padding: 14px 20px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .top-bar .icon {
+      width: 36px; height: 36px; background: rgba(255,255,255,.2);
+      border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px;
+    }
+    .top-bar .company-name { color: white; font-size: .95rem; font-weight: 700; }
+    .top-bar .company-sub  { color: rgba(255,255,255,.8); font-size: .75rem; }
+
+    /* LOADING */
+    .state-block {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 40px 24px; text-align: center;
+    }
+    .spinner {
+      width: 42px; height: 42px; border: 4px solid var(--border);
+      border-top-color: var(--primary); border-radius: 50%;
+      animation: spin .8s linear infinite; margin-bottom: 14px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .state-block .nf-icon { font-size: 3.5rem; margin-bottom: 14px; }
+    .state-block h2 { font-size: 1.2rem; margin-bottom: 8px; }
+    .state-block p  { color: var(--muted); font-size: .875rem; line-height: 1.5; }
+
+    /* CONTENT */
+    .content { display: none; flex-direction: column; flex: 1; }
+
+    /* HERO */
+    .doc-hero {
+      background: linear-gradient(135deg, var(--primary), #2563eb);
+      padding: 28px 22px 32px; color: white;
+    }
+    .cat-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(255,255,255,.2); padding: 4px 12px;
+      border-radius: 20px; font-size: .76rem; font-weight: 600; margin-bottom: 14px;
+    }
+    .doc-hero h1 { font-size: 1.4rem; font-weight: 800; line-height: 1.3; margin-bottom: 10px; }
+    .doc-hero .desc { font-size: .88rem; opacity: .9; line-height: 1.6; }
+    .meta-row { display: flex; gap: 16px; margin-top: 14px; }
+    .meta-item { display: flex; align-items: center; gap: 5px; font-size: .78rem; opacity: .85; }
+
+    /* ACTIONS */
+    .actions { padding: 22px 18px; display: flex; flex-direction: column; gap: 12px; }
+    .btn-action {
+      display: flex; align-items: center; gap: 14px;
+      padding: 15px 18px; border-radius: 12px; border: none;
+      cursor: pointer; text-decoration: none; transition: all .2s;
+      width: 100%; text-align: left;
+    }
+    .btn-action .a-icon {
+      width: 44px; height: 44px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; flex-shrink: 0;
+    }
+    .btn-action .a-title { font-size: .93rem; font-weight: 700; display: block; }
+    .btn-action .a-sub   { font-size: .76rem; opacity: .65; margin-top: 2px; display: block; }
+    .btn-action .arrow   { margin-left: auto; font-size: 1.1rem; opacity: .3; }
+
+    .btn-open {
+      background: var(--primary); color: white;
+      box-shadow: 0 4px 14px rgba(29,78,216,.3);
+    }
+    .btn-open:hover { background: var(--primary-dark); }
+    .btn-open .a-icon { background: rgba(255,255,255,.2); }
+
+    .btn-dl {
+      background: white; color: var(--text);
+      border: 1.5px solid var(--border);
+      box-shadow: 0 2px 8px rgba(0,0,0,.06);
+    }
+    .btn-dl:hover { border-color: var(--primary); }
+    .btn-dl .a-icon { background: #eff6ff; }
+
+    .btn-disabled { opacity: .45; pointer-events: none; }
+
+    /* INFO */
+    .info-card {
+      margin: 0 18px 20px; background: white;
+      border: 1.5px solid var(--border); border-radius: 12px; overflow: hidden;
+    }
+    .info-head {
+      padding: 10px 16px; font-size: .74rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .05em; color: var(--muted);
+      border-bottom: 1px solid var(--border); background: var(--bg);
+    }
+    .info-row {
+      display: flex; padding: 11px 16px; gap: 10px; align-items: center;
+      border-bottom: 1px solid var(--border);
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-lbl { font-size: .8rem; color: var(--muted); min-width: 90px; }
+    .info-val { font-size: .86rem; font-weight: 600; }
+
+    /* FOOTER */
+    footer {
+      padding: 18px; text-align: center;
+      font-size: .76rem; color: var(--muted);
+      border-top: 1px solid var(--border); margin-top: auto;
+    }
+    footer a { color: var(--primary); text-decoration: none; }
+  </style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="icon">📁</div>
+  <div>
+    <div class="company-name" id="companyName">Portal RRHH</div>
+    <div class="company-sub">Recursos Humanos</div>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div class="state-block" id="stateLoading">
+  <div class="spinner"></div>
+  <p>Cargando documento...</p>
+</div>
+
+<!-- NOT FOUND -->
+<div class="state-block" id="stateNotFound" style="display:none">
+  <div class="nf-icon">🔍</div>
+  <h2>Documento no encontrado</h2>
+  <p>El QR que escaneaste no corresponde a ningún documento disponible.<br>Por favor consulta con el área de RRHH.</p>
+</div>
+
+<!-- CONTENT -->
+<div class="content" id="stateContent">
+
+  <div class="doc-hero">
+    <div class="cat-badge" id="catBadge">📋 Categoría</div>
+    <h1 id="docTitulo">Título</h1>
+    <p class="desc" id="docDesc"></p>
+    <div class="meta-row">
+      <div class="meta-item" id="docVersion">📄</div>
+      <div class="meta-item" id="docFecha">🗓</div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <a id="btnVer" href="#" target="_blank" rel="noopener" class="btn-action btn-open">
+      <div class="a-icon">👁️</div>
+      <div>
+        <span class="a-title">Ver Documento</span>
+        <span class="a-sub">Abrir en el navegador</span>
+      </div>
+      <span class="arrow">›</span>
+    </a>
+    <a id="btnDescargar" href="#" class="btn-action btn-dl">
+      <div class="a-icon">⬇️</div>
+      <div>
+        <span class="a-title">Descargar</span>
+        <span class="a-sub">Guardar en tu dispositivo</span>
+      </div>
+      <span class="arrow">›</span>
+    </a>
+  </div>
+
+  <div class="info-card">
+    <div class="info-head">Información del documento</div>
+    <div class="info-row"><span class="info-lbl">Categoría</span><span class="info-val" id="iCat">—</span></div>
+    <div class="info-row"><span class="info-lbl">Versión</span>   <span class="info-val" id="iVer">—</span></div>
+    <div class="info-row"><span class="info-lbl">Fecha</span>     <span class="info-val" id="iFec">—</span></div>
+    <div class="info-row"><span class="info-lbl">Código</span>    <span class="info-val" id="iId" style="font-family:monospace;font-size:.78rem;color:var(--muted)">—</span></div>
+  </div>
+
+</div>
+
+<footer>
+  <span id="footerEmpresa"></span> — Portal de Documentos RRHH<br>
+  <a href="index.html" style="margin-top:4px;display:inline-block">← Ver todos los documentos</a>
+</footer>
+
+<script>
+  function show(id) {
+    ["stateLoading","stateNotFound","stateContent"].forEach(s => {
+      const el = document.getElementById(s);
+      if (s === "stateContent") el.style.display = s === id ? "flex" : "none";
+      else el.style.display = s === id ? "flex" : "none";
+    });
+  }
+
+  async function init() {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+    if (!id) { show("stateNotFound"); return; }
+
+    try {
+      // Obtener empresa desde config
+      const cfg = await fetch("/api/config").then(r => r.json()).catch(() => ({}));
+      const empresa = cfg.empresa || "Portal RRHH";
+      document.getElementById("companyName").textContent = empresa;
+      document.getElementById("footerEmpresa").textContent = empresa;
+
+      const doc = await fetch(`/api/docs/${id}`).then(r => {
+        if (!r.ok) throw new Error("not found");
+        return r.json();
+      });
+
+      document.title = doc.titulo + " — " + empresa;
+      document.getElementById("catBadge").textContent  = `${doc.icono} ${doc.categoria}`;
+      document.getElementById("docTitulo").textContent = doc.titulo;
+      document.getElementById("docDesc").textContent   = doc.descripcion || "";
+      document.getElementById("docVersion").textContent = "📄 " + (doc.version || "");
+      document.getElementById("docFecha").textContent   = "🗓 "  + (doc.fecha   || "");
+      document.getElementById("iCat").textContent = doc.categoria || "—";
+      document.getElementById("iVer").textContent = doc.version   || "—";
+      document.getElementById("iFec").textContent = doc.fecha     || "—";
+      document.getElementById("iId").textContent  = doc.id;
+
+      const fileUrl     = `/uploads/${doc.filename}`;
+      const downloadUrl = `/api/docs/${id}/download`;
+
+      document.getElementById("btnVer").href       = fileUrl;
+      document.getElementById("btnDescargar").href = downloadUrl;
+
+      show("stateContent");
+    } catch {
+      show("stateNotFound");
+    }
+  }
+
+  init();
+</script>
+</body>
+</html>
